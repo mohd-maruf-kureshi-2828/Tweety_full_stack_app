@@ -1,0 +1,242 @@
+{% extends 'layout.html' %}
+
+{% block title %}Tweetify{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+  <!-- HERO -->
+  <div class="text-center mb-5 hero">
+    <h1 class="fw-bold display-5 text-info hero-title">Tweetify 💬</h1>
+    <p class="text-secondary fs-5 hero-sub">
+      Share thoughts. Express ideas.
+    </p>
+
+    <a href="{% url 'tweet_create' %}" 
+       class="btn btn-primary btn-lg px-4 shadow hero-btn">
+      ✍️ Create New Tweet
+    </a>
+  </div>
+
+  <!-- TWEETS -->
+  <div class="row g-4">
+
+    {% for tweet in tweets %}
+    <div class="col-lg-4 col-md-6 col-sm-12">
+
+      <div class="card h-100 shadow-sm border-0 rounded-4 tweet-card">
+
+        {% if tweet.photo %}
+        <img src="{{ tweet.photo.url }}" class="card-img-top rounded-top-4">
+        {% endif %}
+
+        <div class="card-body d-flex flex-column">
+
+          <!-- USER -->
+          <h6 class="fw-bold text-primary">@{{ tweet.user.username }}</h6>
+
+          <!-- TEXT -->
+          <p class="text-light-emphasis flex-grow-1 mt-2">
+            {{ tweet.text }}
+          </p>
+
+          <!-- LIKE + COMMENT COUNT -->
+          <div class="d-flex align-items-center gap-3 mb-2">
+
+            <!-- LIKE -->
+            <button
+              class="like-btn"
+              data-tweet-id="{{ tweet.id }}"
+            >
+              ❤️ 
+              <span id="like-count-{{ tweet.id }}">
+                {{ tweet.likes.count }}
+              </span>
+            </button>
+
+            <!-- COMMENT COUNT -->
+            <span class="text-muted small">
+              💬 {{ tweet.comments.count }}
+            </span>
+
+          </div>
+
+          <!-- COMMENTS -->
+          <div id="comment-list-{{ tweet.id }}" 
+               class="mb-2 comment-box">
+            {% for comment in tweet.comments.all %}
+              <p class="small mb-1">
+                <strong>{{ comment.user.username }}</strong>: {{ comment.text }}
+              </p>
+            {% endfor %}
+          </div>
+
+          <!-- COMMENT FORM -->
+          <form class="comment-form mt-2 d-flex gap-2"
+                data-tweet-id="{{ tweet.id }}">
+            {% csrf_token %}
+            <input
+              type="text"
+              name="comment"
+              class="form-control form-control-sm comment-input"
+              placeholder="Write a comment..."
+              required
+            />
+            <button type="submit" class="send-btn">
+              ➤
+            </button>
+          </form>
+
+          <!-- OWNER ACTIONS (UNCHANGED) -->
+          {% if tweet.user == user %}
+          <div class="d-flex justify-content-between mt-3">
+            <a href="{% url 'tweet_edit' tweet.id %}" 
+               class="btn btn-outline-info btn-sm">
+              ✏️ Edit
+            </a>
+            <a href="{% url 'tweet_delete' tweet.id %}" 
+               class="btn btn-outline-danger btn-sm">
+              🗑️ Delete
+            </a>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+<!-- STYLES -->
+<style>
+
+/* HERO ANIMATION */
+.hero-title {
+  animation: fadeUp 0.8s ease forwards;
+}
+.hero-sub {
+  animation: fadeUp 1.2s ease forwards;
+}
+.hero-btn {
+  animation: fadeUp 1.6s ease forwards;
+}
+
+/* CARD */
+.tweet-card {
+  transition: all 0.3s ease;
+}
+.tweet-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 25px rgba(0,0,0,0.25);
+}
+
+/* LIKE BUTTON (INSTAGRAM STYLE) */
+.like-btn {
+  background: transparent;
+  border: none;
+  color: #ff4d6d;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: 0.2s ease;
+}
+.like-btn:hover {
+  transform: scale(1.1);
+}
+
+/* COMMENT INPUT */
+.comment-input {
+  border-radius: 20px;
+  padding-left: 12px;
+}
+
+/* SEND BUTTON SMALL ROUND */
+.send-btn {
+  background: #0d6efd;
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  transition: 0.2s ease;
+}
+.send-btn:hover {
+  background: #0b5ed7;
+  transform: scale(1.1);
+}
+
+/* COMMENT BOX SCROLL SAFE */
+.comment-box {
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+/* ANIMATION */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+</style>
+
+
+<!-- JAVASCRIPT (UNCHANGED LOGIC) -->
+<script>
+const csrfToken = "{{ csrf_token }}";
+
+/* LIKE */
+document.querySelectorAll(".like-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const tweetId = btn.dataset.tweetId;
+
+    fetch(`/tweet/${tweetId}/like/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken
+      }
+    })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById(`like-count-${tweetId}`)
+        .innerText = data.total_likes;
+    });
+  });
+});
+
+/* COMMENT */
+document.querySelectorAll(".comment-form").forEach(form => {
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+
+    const tweetId = form.dataset.tweetId;
+    const input = form.querySelector("input[name='comment']");
+    const text = input.value;
+
+    fetch(`/tweet/${tweetId}/comment/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": csrfToken,
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: `comment=${text}`
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") {
+        document.getElementById(`comment-list-${tweetId}`)
+          .innerHTML += 
+          `<p class="small mb-1">
+             <strong>${data.username}</strong>: ${data.text}
+           </p>`;
+        input.value = "";
+      }
+    });
+  });
+});
+</script>
+
+{% endblock %}

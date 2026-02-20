@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="card shadow-sm p-4 rounded-4 text-center" style="max-width: 400px; width: 100%;">
+
+    <h2 class="fw-bold mb-2">Logged Out ✅</h2>
+    <p class="text-muted mb-4">
+      You have been successfully logged out.
+    </p>
+
+    <a href="{% url 'login' %}" class="btn btn-outline-primary btn-lg rounded-pill">
+      Login Again
+    </a>
+
+  </div>
+</div>
+{% endblock %}
