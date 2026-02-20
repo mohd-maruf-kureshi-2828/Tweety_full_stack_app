@@ -89,7 +89,7 @@ This project demonstrates backend architecture, database relationships, AJAX int
 
 1. Clone the repository:
 
-   git clone https://github.com/yourusername/tweety_full_stack_app.git
+   git clone https://github.com/mohd-maruf-kureshi-2828/Tweety_full_stack_app/tree/main
 
 2. Navigate into the project directory:
 
