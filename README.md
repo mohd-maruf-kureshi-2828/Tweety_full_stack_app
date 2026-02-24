@@ -1,6 +1,6 @@
 # TweetWithMe 💬
 
-Tweetify is a full-stack social media web application built using Django.
+TweetWithMe is a full-stack social media web application built using Django.
 
 The application allows users to register, log in, create posts, like posts, comment in real-time, search content, and manage their own posts with proper authentication and authorization.
 
