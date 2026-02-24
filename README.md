@@ -1,4 +1,4 @@
-# Tweetify 💬
+# TweetWithMe 💬
 
 Tweetify is a full-stack social media web application built using Django.
 
